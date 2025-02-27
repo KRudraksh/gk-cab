@@ -4,9 +4,25 @@
   <title>GK-CAB</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta http-equiv="refresh" content="0;url=/api/test">
+  <link rel="stylesheet" href="/AdminDashboard.css">
+  <!-- Add React and ReactDOM from CDN -->
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <!-- Add Babel for JSX transformation -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 </head>
 <body>
-  <p>Redirecting to application...</p>
+  <div id="root"></div>
+  
+  <!-- Load your React component with type="text/babel" -->
+  <script type="text/babel" src="/AdminDashboard.js"></script>
+  
+  <!-- Initialize your React app -->
+  <script type="text/babel">
+    ReactDOM.render(
+      React.createElement(Dashboard),
+      document.getElementById('root')
+    );
+  </script>
 </body>
 </html> 

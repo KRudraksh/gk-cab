@@ -1,5 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import './AdminDashboard.css'; // Importing the CSS file for styles
+// Remove import statements at the top
+// import React, { useState, useEffect } from 'react';
+// import './AdminDashboard.css';
+
+// Use React and useState, useEffect from the global React object
+const { useState, useEffect } = React;
 
 const Dashboard = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -392,4 +396,5 @@ const Dashboard = () => {
     );
 };
 
-export default Dashboard; 
+// No need to export, it will be available globally
+// export default Dashboard; 

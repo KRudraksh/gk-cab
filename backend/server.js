@@ -236,27 +236,20 @@ app.get('/api/test', (req, res) => {
 
 // Modify the static file serving section
 if (process.env.NODE_ENV === 'production') {
-  // Serve static files from the src directory or wherever your frontend files are
+  // Serve static files from the src directory
   app.use(express.static(path.join(__dirname, '../src')));
+  
+  // Serve the index.html file for the root route
+  app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, '../index.html'));
+  });
   
   // Handle any requests that don't match the API routes
   app.get('*', (req, res) => {
-    // Send a simple HTML page that loads your JavaScript
-    res.send(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>GK-CAB</title>
-          <meta charset="utf-8">
-          <meta name="viewport" content="width=device-width, initial-scale=1">
-          <link rel="stylesheet" href="/AdminDashboard.css">
-        </head>
-        <body>
-          <div id="root"></div>
-          <script src="/AdminDashboard.js"></script>
-        </body>
-      </html>
-    `);
+    // Check if it's an API route
+    if (!req.path.startsWith('/api/')) {
+      res.sendFile(path.join(__dirname, '../index.html'));
+    }
   });
 }
 
