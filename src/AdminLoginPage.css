@@ -1,0 +1,61 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, sans-serif;
+}
+
+.login-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background-color: #dcdbdb; /* Background color */
+    position: relative; /* Ensure this is set */
+}
+
+.heading {
+    color: #000000; /* Text color */
+    font-size: 2.5rem;
+    margin: 0;
+}
+
+.sub-sub-heading {
+    color: #000000; /* Text color */
+    font-size: 1.5rem; /* Adjust font size as needed */
+    margin: 0; /* Remove margin for absolute positioning */
+    position: absolute; /* Position it absolutely */
+    top: 20px; /* Adjust top position as needed */
+    right: 20px; /* Adjust right position as needed */
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    width: 300px; /* Width of the form */
+}
+
+.input-field {
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+.submit-button {
+    padding: 10px;
+    background-color: #1E1E2C; /* Button color */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.submit-button:hover {
+    background-color: #333; /* Darker shade on hover */
+}
+
+.error-message {
+    color: red;
+    margin-top: 10px;
+} 
