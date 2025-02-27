@@ -5,8 +5,8 @@
   "main": "backend/server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "build": "cd frontend && npm install && npm run build",
-    "postinstall": "cd backend && npm install"
+    "build": "npm install && cd backend && npm install",
+    "postinstall": "echo 'Installation completed'"
   },
   "engines": {
     "node": "16.x"
