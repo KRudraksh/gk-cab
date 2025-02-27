@@ -234,19 +234,15 @@ app.get('/api/test', (req, res) => {
   res.status(200).json({ message: 'Server is running correctly' });
 });
 
-// Modify the static file serving section
+// Make sure this section is correct
 if (process.env.NODE_ENV === 'production') {
   // Serve static files from the src directory
   app.use(express.static(path.join(__dirname, '../src')));
   
-  // Serve the index.html file for the root route
-  app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, '../index.html'));
-  });
+  // API routes should be defined before this catch-all route
   
-  // Handle any requests that don't match the API routes
+  // Serve index.html for all non-API routes
   app.get('*', (req, res) => {
-    // Check if it's an API route
     if (!req.path.startsWith('/api/')) {
       res.sendFile(path.join(__dirname, '../index.html'));
     }
