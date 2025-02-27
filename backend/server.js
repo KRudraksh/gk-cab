@@ -147,19 +147,28 @@ app.get('/api/machines', async (req, res) => {
 // API endpoint to delete a machine
 app.delete('/api/machines/:id', async (req, res) => {
     const { id } = req.params;
-    const { password, username } = req.body; // Include username in the request body
+    const { password, username, userId } = req.body; // Accept both username and userId
 
     try {
         await Machine.findByIdAndDelete(id);
         
-        // Update the user's machine count
-        await User.findOneAndUpdate(
-            { username: username }, // Find the user by username
-            { $inc: { machineCount: -1 } } // Decrement the machineCount by 1
-        );
+        // Update the user's machine count using userId if provided
+        if (userId) {
+            await User.findByIdAndUpdate(
+                userId,
+                { $inc: { machineCount: -1 } } // Decrement the machineCount by 1
+            );
+        } else if (username) {
+            // Fallback to username if provided (for backward compatibility)
+            await User.findOneAndUpdate(
+                { username: username },
+                { $inc: { machineCount: -1 } }
+            );
+        }
 
         res.status(200).send('Machine deleted successfully');
     } catch (error) {
+        console.error('Error deleting machine:', error);
         res.status(500).send('Error deleting machine');
     }
 });

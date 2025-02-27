@@ -158,12 +158,16 @@ const Dashboard = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ password: adminPassword }), // Send admin password for confirmation
+                body: JSON.stringify({ 
+                    password: adminPassword,
+                    userId: selectedUserId // Add the user ID to the request
+                }), 
             });
 
             if (response.ok) {
                 alert('Machine deleted successfully!');
                 fetchUserMachines(selectedUserId); // Refresh the machines for the selected user
+                fetchUsers(); // Also refresh the users list to update the machine count
                 closeDeleteMachineModal();
             } else {
                 const errorMessage = await response.text();
