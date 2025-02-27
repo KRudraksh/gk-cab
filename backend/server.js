@@ -32,7 +32,6 @@ const connectDB = async () => {
   } catch (error) {
     console.error('MongoDB connection error details:', error);
     // Don't exit the process, just log the error
-    // process.exit(1);
   }
 };
 
@@ -235,13 +234,29 @@ app.get('/api/test', (req, res) => {
   res.status(200).json({ message: 'Server is running correctly' });
 });
 
-// Serve static files from the React frontend app
+// Modify the static file serving section
 if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../frontend/build')));
-
-  // Handle any requests that don't match the above
+  // Serve static files from the src directory or wherever your frontend files are
+  app.use(express.static(path.join(__dirname, '../src')));
+  
+  // Handle any requests that don't match the API routes
   app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+    // Send a simple HTML page that loads your JavaScript
+    res.send(`
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>GK-CAB</title>
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <link rel="stylesheet" href="/AdminDashboard.css">
+        </head>
+        <body>
+          <div id="root"></div>
+          <script src="/AdminDashboard.js"></script>
+        </body>
+      </html>
+    `);
   });
 }
 
