@@ -4,39 +4,19 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const twilio = require('twilio');
-const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = 5000;
 
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
 
-// Update the MongoDB connection to use the environment variable
-const connectDB = async () => {
-  try {
-    if (!process.env.MONGODB_URI) {
-      console.error('MONGODB_URI environment variable is not set');
-      return;
-    }
-    
-    console.log('Attempting to connect to MongoDB...');
-    await mongoose.connect(process.env.MONGODB_URI, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      retryWrites: false,
-      w: 'majority'
-    });
-    console.log('MongoDB connected to Azure Cosmos DB successfully');
-  } catch (error) {
-    console.error('MongoDB connection error details:', error);
-    // Don't exit the process, just log the error
-  }
-};
-
-// Call the connectDB function
-connectDB();
+// MongoDB connection
+mongoose.connect('mongodb://localhost:27017/gk-cab', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+});
 
 // User schema
 const userSchema = new mongoose.Schema({
@@ -229,29 +209,7 @@ app.get('/api/users/:id', async (req, res) => {
     }
 });
 
-// Add this near the top of your routes
-app.get('/api/test', (req, res) => {
-  res.status(200).json({ message: 'Server is running correctly' });
-});
-
-// Make sure this section is correct
-if (process.env.NODE_ENV === 'production') {
-  // Serve static files from the src directory
-  app.use(express.static(path.join(__dirname, '../src')));
-  
-  // API routes should be defined before this catch-all route
-  
-  // Serve index.html for all non-API routes
-  app.get('*', (req, res) => {
-    if (!req.path.startsWith('/api/')) {
-      res.sendFile(path.join(__dirname, '../index.html'));
-    }
-  });
-}
-
-// Add this to log startup information more clearly
+// Start the server
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-    console.log(`Node environment: ${process.env.NODE_ENV}`);
-    console.log(`MongoDB URI exists: ${Boolean(process.env.MONGODB_URI)}`);
+    console.log(`Server is running on http://localhost:${PORT}`);
 }); 
