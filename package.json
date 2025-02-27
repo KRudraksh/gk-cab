@@ -2,9 +2,9 @@
   "name": "gk-cab",
   "version": "1.0.0",
   "description": "GK Cab Application",
-  "main": "backend/server.js",
+  "main": "backend/server-test.js",
   "scripts": {
-    "start": "node backend/server.js",
+    "start": "node backend/server-test.js",
     "build": "npm install && cd backend && npm install",
     "postinstall": "echo 'Installation completed'"
   },

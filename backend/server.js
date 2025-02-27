@@ -16,17 +16,23 @@ app.use(bodyParser.json());
 // Update the MongoDB connection to use the environment variable
 const connectDB = async () => {
   try {
+    if (!process.env.MONGODB_URI) {
+      console.error('MONGODB_URI environment variable is not set');
+      return;
+    }
+    
+    console.log('Attempting to connect to MongoDB...');
     await mongoose.connect(process.env.MONGODB_URI, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      // These options might be needed for Azure Cosmos DB
       retryWrites: false,
       w: 'majority'
     });
     console.log('MongoDB connected to Azure Cosmos DB successfully');
   } catch (error) {
-    console.error('MongoDB connection error:', error.message);
-    process.exit(1);
+    console.error('MongoDB connection error details:', error);
+    // Don't exit the process, just log the error
+    // process.exit(1);
   }
 };
 
@@ -224,6 +230,11 @@ app.get('/api/users/:id', async (req, res) => {
     }
 });
 
+// Add this near the top of your routes
+app.get('/api/test', (req, res) => {
+  res.status(200).json({ message: 'Server is running correctly' });
+});
+
 // Serve static files from the React frontend app
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../frontend/build')));
@@ -234,7 +245,9 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
-// Start the server
+// Add this to log startup information more clearly
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+    console.log(`Node environment: ${process.env.NODE_ENV}`);
+    console.log(`MongoDB URI exists: ${Boolean(process.env.MONGODB_URI)}`);
 }); 
