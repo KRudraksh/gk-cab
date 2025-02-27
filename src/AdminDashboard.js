@@ -25,7 +25,7 @@ const Dashboard = () => {
 
     const fetchUsers = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/users');
+            const response = await fetch('/api/users');
             const data = await response.json();
             // console.log('Fetched users:', data); // Log the fetched users
             setUsers(data);
@@ -52,7 +52,7 @@ const Dashboard = () => {
         const userData = { name, username, password, email };
 
         try {
-            const response = await fetch('http://localhost:5000/api/users', {
+            const response = await fetch('/api/users', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -88,7 +88,7 @@ const Dashboard = () => {
 
     const handleDeleteUser = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/users/${userIdToDelete}`, {
+            const response = await fetch(`/api/users/${userIdToDelete}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -118,7 +118,7 @@ const Dashboard = () => {
 
     const fetchUserMachines = async (userId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/machines?username=${userId}`);
+            const response = await fetch(`/api/machines?username=${userId}`);
             const machines = await response.json();
             setUserMachines(machines);
         } catch (error) {
@@ -128,7 +128,7 @@ const Dashboard = () => {
 
     const fetchUserName = async (userId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/users/${userId}`); // Adjust the endpoint as necessary
+            const response = await fetch(`/api/users/${userId}`); // Adjust the endpoint as necessary
             const user = await response.json();
             setSelectedUserName(user.name); // Set the user's name
         } catch (error) {
@@ -153,7 +153,7 @@ const Dashboard = () => {
 
     const handleDeleteMachine = async () => {
         try {
-            const response = await fetch(`http://localhost:5000/api/machines/${machineIdToDelete}`, {
+            const response = await fetch(`/api/machines/${machineIdToDelete}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -178,7 +178,7 @@ const Dashboard = () => {
         const messageBody = `PASS: dMiiMtXVm71QHVgX\nCMD: STATUS_CHECK`; // Adjust the message format as needed
 
         try {
-            const response = await fetch('http://localhost:5000/api/send-status', {
+            const response = await fetch('/api/send-status', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -205,7 +205,7 @@ const Dashboard = () => {
         const newStatus = machine.serverConnection === 'OFFLINE' ? 'ONLINE' : 'OFFLINE'; // Toggle status
 
         try {
-            const response = await fetch(`http://localhost:5000/api/machines/${machineId}`, {
+            const response = await fetch(`/api/machines/${machineId}`, {
                 method: 'PATCH', // Use PATCH to update the existing machine
                 headers: {
                     'Content-Type': 'application/json',

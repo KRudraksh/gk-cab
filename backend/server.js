@@ -4,6 +4,7 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const twilio = require('twilio');
+const path = require('path');
 
 const app = express();
 const PORT = 5000;
@@ -12,11 +13,25 @@ const PORT = 5000;
 app.use(cors());
 app.use(bodyParser.json());
 
-// MongoDB connection
-mongoose.connect('mongodb://localhost:27017/gk-cab', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-});
+// Update the MongoDB connection to use the environment variable
+const connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      // These options might be needed for Azure Cosmos DB
+      retryWrites: false,
+      w: 'majority'
+    });
+    console.log('MongoDB connected to Azure Cosmos DB successfully');
+  } catch (error) {
+    console.error('MongoDB connection error:', error.message);
+    process.exit(1);
+  }
+};
+
+// Call the connectDB function
+connectDB();
 
 // User schema
 const userSchema = new mongoose.Schema({
@@ -208,6 +223,16 @@ app.get('/api/users/:id', async (req, res) => {
         res.status(500).send('Error fetching user');
     }
 });
+
+// Serve static files from the React frontend app
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(path.join(__dirname, '../frontend/build')));
+
+  // Handle any requests that don't match the above
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/build', 'index.html'));
+  });
+}
 
 // Start the server
 app.listen(PORT, () => {
