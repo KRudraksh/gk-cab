@@ -1,0 +1,6 @@
+tunnel: e673b4af-edc2-4b7c-92d5-7aba15ff80cd
+credentials-file: C:\Users\Admin\.cloudflared\
+ingress:
+  - hostname: bdynamics.in
+    service: http://localhost:5000
+  - service: http_status:404

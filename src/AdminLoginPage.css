@@ -15,13 +15,13 @@ body {
 }
 
 .heading {
-    color: #000000; /* Text color */
+    color: #1e434c; /* Text color */
     font-size: 2.5rem;
     margin: 0;
 }
 
 .sub-sub-heading {
-    color: #000000; /* Text color */
+    color: #1e434c; /* Text color */
     font-size: 1.5rem; /* Adjust font size as needed */
     margin: 0; /* Remove margin for absolute positioning */
     position: absolute; /* Position it absolutely */
@@ -38,13 +38,13 @@ body {
 .input-field {
     padding: 10px;
     margin: 10px 0;
-    border: 1px solid #ccc;
+    border: 1px solid #2c7873;
     border-radius: 5px;
 }
 
 .submit-button {
     padding: 10px;
-    background-color: #1E1E2C; /* Button color */
+    background-color: #1e434c; /* Button color */
     color: white;
     border: none;
     border-radius: 5px;
@@ -52,7 +52,7 @@ body {
 }
 
 .submit-button:hover {
-    background-color: #333; /* Darker shade on hover */
+    background-color: #2c7873; /* Darker shade on hover */
 }
 
 .error-message {

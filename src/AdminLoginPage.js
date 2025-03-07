@@ -12,8 +12,8 @@ const AdminLoginPage = () => {
     const handleLogin = (e) => {
         e.preventDefault();
         // Using environment variable for password with fallback
-        console.log('Checking password:', password);
-        console.log('Against password:', ADMIN_PASSWORD);
+        // console.log('Checking password:', password);
+        // console.log('Against password:', ADMIN_PASSWORD);
         
         if (userId === 'gkmicro' && password === ADMIN_PASSWORD) {
             // Redirect to the dashboard

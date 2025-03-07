@@ -12,6 +12,7 @@ const Dashboard = () => {
     const [showPassword, setShowPassword] = useState({}); // To track which passwords to show
     const [userIdToDelete, setUserIdToDelete] = useState(null);
     const [adminPassword, setAdminPassword] = useState('');
+    const [passwordError, setPasswordError] = useState(''); // State to track password error message
     const [isEditModalOpen, setIsEditModalOpen] = useState(false); // State for edit modal
     const [selectedUserId, setSelectedUserId] = useState(null); // State to track the selected user for editing
     const [userMachines, setUserMachines] = useState([]);
@@ -84,16 +85,33 @@ const Dashboard = () => {
     const closeDeleteModal = () => {
         setIsDeleteModalOpen(false);
         setAdminPassword('');
+        setPasswordError(''); // Clear any password error when closing the modal
     };
 
     const handleDeleteUser = async () => {
+        // Get the admin password from environment variable
+        const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD || 'gkmicro@1234'; // Fallback to hardcoded password if env var not available
+        
+        // First check if password is provided
+        if (!adminPassword) {
+            setPasswordError('Please enter admin password');
+            return;
+        }
+        
+        // Check if password matches with admin password
+        if (adminPassword !== ADMIN_PASSWORD) {
+            setPasswordError('Incorrect admin password');
+            return;
+        }
+        
+        // If password is correct, proceed with deletion
         try {
             const response = await fetch(`http://localhost:5000/api/users/${userIdToDelete}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ password: adminPassword }), // Optional: Send admin password if needed
+                body: JSON.stringify({ password: adminPassword }), // Send admin password
             });
 
             if (response.ok) {
@@ -149,9 +167,26 @@ const Dashboard = () => {
     const closeDeleteMachineModal = () => {
         setIsDeleteMachineModalOpen(false);
         setAdminPassword('');
+        setPasswordError(''); // Clear any password error when closing the modal
     };
 
     const handleDeleteMachine = async () => {
+        // Get the admin password from environment variable
+        const ADMIN_PASSWORD = process.env.REACT_APP_ADMIN_PASSWORD || 'gkmicro@1234'; // Fallback to hardcoded password if env var not available
+        
+        // First check if password is provided
+        if (!adminPassword) {
+            setPasswordError('Please enter admin password');
+            return;
+        }
+        
+        // Check if password matches with admin password
+        if (adminPassword !== ADMIN_PASSWORD) {
+            setPasswordError('Incorrect admin password');
+            return;
+        }
+        
+        // If password is correct, proceed with deletion
         try {
             const response = await fetch(`http://localhost:5000/api/machines/${machineIdToDelete}`, {
                 method: 'DELETE',
@@ -179,29 +214,8 @@ const Dashboard = () => {
     };
 
     const handleGetStatus = async (machineId) => {
-        const messageBody = `PASS: dMiiMtXVm71QHVgX\nCMD: STATUS_CHECK`; // Adjust the message format as needed
-
-        try {
-            const response = await fetch('http://localhost:5000/api/send-status', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({ 
-                    simNumber: userMachines.find(machine => machine._id === machineId).simNumber, // Get the SIM number of the selected machine
-                    message: messageBody // Send the message format
-                }), 
-            });
-
-            if (response.ok) {
-                alert('Status requested!'); // Notify the user
-            } else {
-                const errorMessage = await response.text();
-                alert(`Failed to send message: ${errorMessage}`);
-            }
-        } catch (error) {
-            console.error('Error:', error);
-        }
+        // Function modified to remove SMS sending functionality
+        alert('Status check functionality disabled');
     };
 
     const handleToggleServerConnection = async (machineId) => {
@@ -289,6 +303,7 @@ const Dashboard = () => {
                             onChange={(e) => setAdminPassword(e.target.value)}
                             required
                         />
+                        {passwordError && <p className="error-message" style={{ color: 'red' }}>{passwordError}</p>}
                         <button onClick={handleDeleteUser}>Delete User</button>
                         <button onClick={closeDeleteModal}>Cancel</button>
                     </div>
@@ -309,6 +324,7 @@ const Dashboard = () => {
                                     <th>Sensor Status</th>
                                     <th>Location</th>
                                     <th>Server Connection</th>
+                                    <th>PhoneBook</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -321,9 +337,12 @@ const Dashboard = () => {
                                         <td>{machine.sensorStatus}</td>
                                         <td>{machine.location}</td>
                                         <td>{machine.serverConnection}</td>
+                                        <td>{Array.isArray(machine.phoneBook) && machine.phoneBook.length > 0 
+                                            ? machine.phoneBook.filter(number => number && number.trim() !== '').join(', ') 
+                                            : 'None'}</td>
                                         <td>
                                             <div className="action-buttons">
-                                                <button onClick={() => openDeleteMachineModal(machine._id)}>Delete</button>
+                                                <button style={{backgroundColor: '#cf1313'}} onClick={() => openDeleteMachineModal(machine._id)}>Delete</button>
                                                 <button onClick={() => handleGetStatus(machine._id)}>Get Status</button>
                                                 <button onClick={() => handleToggleServerConnection(machine._id)}>
                                                     {machine.serverConnection === 'OFFLINE' ? 'Enable Server' : 'Disable Server'}
@@ -352,6 +371,7 @@ const Dashboard = () => {
                             onChange={(e) => setAdminPassword(e.target.value)}
                             required
                         />
+                        {passwordError && <p className="error-message" style={{ color: 'red' }}>{passwordError}</p>}
                         <button onClick={handleDeleteMachine}>Delete Machine</button>
                         <button onClick={closeDeleteMachineModal}>Cancel</button>
                     </div>
