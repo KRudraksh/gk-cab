@@ -136,7 +136,17 @@ const Dashboard = () => {
 
     const fetchUserMachines = async (userId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/machines?username=${userId}`);
+            // Get the username from the users array
+            const user = users.find(user => user._id === userId);
+            const username = user ? user.username : '';
+            
+            if (!username) {
+                console.error('Error: Username not found for user ID:', userId);
+                return;
+            }
+            
+            // Use the username to fetch the user's machines
+            const response = await fetch(`http://localhost:5000/api/machines?username=${username}`);
             const machines = await response.json();
             setUserMachines(machines);
         } catch (error) {
@@ -186,6 +196,9 @@ const Dashboard = () => {
             return;
         }
         
+        // Get the machine to find its username
+        const machineToDelete = userMachines.find(machine => machine._id === machineIdToDelete);
+        
         // If password is correct, proceed with deletion
         try {
             const response = await fetch(`http://localhost:5000/api/machines/${machineIdToDelete}`, {
@@ -195,7 +208,8 @@ const Dashboard = () => {
                 },
                 body: JSON.stringify({ 
                     password: adminPassword,
-                    userId: selectedUserId // Add the user ID to the request
+                    userId: selectedUserId, // Add the user ID to the request
+                    username: machineToDelete ? machineToDelete.username : '' // Include the machine's username
                 }), 
             });
 
@@ -228,7 +242,10 @@ const Dashboard = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ serverConnection: newStatus }), // Send the new status
+                body: JSON.stringify({ 
+                    serverConnection: newStatus,
+                    username: machine.username // Include the machine's username
+                }), // Send the new status
             });
 
             if (response.ok) {
@@ -319,6 +336,7 @@ const Dashboard = () => {
                             <thead>
                                 <tr>
                                     <th>Machine Name</th>
+                                    {/* <th>Username</th> */}
                                     <th>SIM Number</th>
                                     <th>Status</th>
                                     <th>Sensor Status</th>
@@ -332,6 +350,7 @@ const Dashboard = () => {
                                 {userMachines.map((machine) => (
                                     <tr key={machine._id}>
                                         <td>{machine.machineName}</td>
+                                        {/* <td>{machine.username || 'None'}</td> */}
                                         <td>{machine.simNumber}</td>
                                         <td>{machine.status}</td>
                                         <td>{machine.sensorStatus}</td>
@@ -343,7 +362,7 @@ const Dashboard = () => {
                                         <td>
                                             <div className="action-buttons">
                                                 <button style={{backgroundColor: '#cf1313'}} onClick={() => openDeleteMachineModal(machine._id)}>Delete</button>
-                                                <button onClick={() => handleGetStatus(machine._id)}>Get Status</button>
+                                                {/* <button onClick={() => handleGetStatus(machine._id)}>Get Status</button> */}
                                                 <button onClick={() => handleToggleServerConnection(machine._id)}>
                                                     {machine.serverConnection === 'OFFLINE' ? 'Enable Server' : 'Disable Server'}
                                                 </button>

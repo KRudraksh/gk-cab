@@ -7,6 +7,9 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = 5000;
 
+// Global variable to track the last data update time
+let lastDataUpdateTime = new Date().toISOString();
+
 // Middleware
 app.use(cors());
 app.use(bodyParser.json());
@@ -34,6 +37,7 @@ const User = mongoose.model('User', userSchema);
 const machineSchema = new mongoose.Schema({
     machineName: String,
     simNumber: String,
+    username: String, // Add username field to associate with a specific user
     remarks: String,
     status: { type: String, default: 'OFFLINE' }, // Default status
     sensorStatus: { type: String, default: 'None' }, // Default sensor status
@@ -138,6 +142,7 @@ app.post('/api/machines', async (req, res) => {
     const newMachine = new Machine({
         machineName,
         simNumber,
+        username, // Save the username with the machine
         remarks,
         status: 'OFFLINE', // Set default status
         sensorStatus: 'None', // Set default sensor status
@@ -184,7 +189,15 @@ app.post('/api/machines/reset-status', async (req, res) => {
 // API endpoint to get all machines
 app.get('/api/machines', async (req, res) => {
     try {
-        const machines = await Machine.find();
+        const { username } = req.query;
+        let query = {};
+        
+        // If username is provided, filter machines by username
+        if (username) {
+            query.username = username;
+        }
+        
+        const machines = await Machine.find(query);
         res.status(200).json(machines);
     } catch (error) {
         res.status(500).send('Error fetching machines');
@@ -195,10 +208,22 @@ app.get('/api/machines', async (req, res) => {
 app.post('/api/machines/:machineId/directory-numbers', async (req, res) => {
     try {
         const { machineId } = req.params;
-        const { directoryNumbers } = req.body;
+        const { directoryNumbers, username } = req.body;
         
         if (!Array.isArray(directoryNumbers)) {
             return res.status(400).send('directoryNumbers must be an array');
+        }
+        
+        // Find the machine first to verify ownership
+        const machine = await Machine.findById(machineId);
+        
+        if (!machine) {
+            return res.status(404).send('Machine not found');
+        }
+        
+        // If username is provided and doesn't match the machine's username, return 403
+        if (username && machine.username && machine.username !== username) {
+            return res.status(403).send('Not authorized to update this machine');
         }
         
         await Machine.findByIdAndUpdate(
@@ -218,10 +243,16 @@ app.post('/api/machines/:machineId/directory-numbers', async (req, res) => {
 app.get('/api/machines/:machineId/directory-numbers', async (req, res) => {
     try {
         const { machineId } = req.params;
+        const { username } = req.query; // Get username from query params
         
         const machine = await Machine.findById(machineId);
         if (!machine) {
             return res.status(404).send('Machine not found');
+        }
+        
+        // If username is provided and doesn't match the machine's username, return 403
+        if (username && machine.username && machine.username !== username) {
+            return res.status(403).send('Not authorized to access this machine');
         }
         
         res.status(200).json({ directoryNumbers: machine.directoryNumbers || [] });
@@ -234,12 +265,19 @@ app.get('/api/machines/:machineId/directory-numbers', async (req, res) => {
 // API endpoint to get a single machine by ID
 app.get('/api/machines/:id', async (req, res) => {
     const { id } = req.params;
+    const { username } = req.query; // Get username from query params
     
     try {
         const machine = await Machine.findById(id);
         if (!machine) {
             return res.status(404).send('Machine not found');
         }
+        
+        // If username is provided and doesn't match the machine's username, return 403
+        if (username && machine.username && machine.username !== username) {
+            return res.status(403).send('Not authorized to access this machine');
+        }
+        
         res.status(200).json(machine);
     } catch (error) {
         console.error('Error fetching machine:', error);
@@ -253,6 +291,19 @@ app.delete('/api/machines/:id', async (req, res) => {
     const { password, username, userId } = req.body; // Accept both username and userId
 
     try {
+        // Find the machine first to verify ownership
+        const machine = await Machine.findById(id);
+        
+        if (!machine) {
+            return res.status(404).send('Machine not found');
+        }
+        
+        // Verify that the machine belongs to the user
+        if (machine.username && username && machine.username !== username) {
+            return res.status(403).send('Not authorized to delete this machine');
+        }
+        
+        // Delete the machine
         await Machine.findByIdAndDelete(id);
         
         // Update the user's machine count using userId if provided
@@ -279,9 +330,22 @@ app.delete('/api/machines/:id', async (req, res) => {
 // API endpoint to update a machine
 app.patch('/api/machines/:id', async (req, res) => {
     const { id } = req.params;
-    const { serverConnection } = req.body; // Get the new server connection status
+    const { serverConnection, username } = req.body; // Get the new server connection status and username
 
     try {
+        // Find the machine first to verify ownership
+        const machine = await Machine.findById(id);
+        
+        if (!machine) {
+            return res.status(404).send('Machine not found');
+        }
+        
+        // If username is provided and doesn't match the machine's username, return 403
+        if (username && machine.username && machine.username !== username) {
+            return res.status(403).send('Not authorized to update this machine');
+        }
+        
+        // Update the machine
         await Machine.findByIdAndUpdate(id, { serverConnection: serverConnection });
         res.status(200).send('Machine updated successfully');
     } catch (error) {
@@ -307,8 +371,22 @@ app.get('/api/users/:id', async (req, res) => {
 // API endpoint to get machine operations for a specific machine
 app.get('/api/machines/:id/operations', async (req, res) => {
     const { id } = req.params;
+    const { username } = req.query; // Get username from query params
     
     try {
+        // First check if the machine belongs to the user
+        if (username) {
+            const machine = await Machine.findById(id);
+            if (!machine) {
+                return res.status(404).send('Machine not found');
+            }
+            
+            // If username doesn't match the machine's username, return 403
+            if (machine.username && machine.username !== username) {
+                return res.status(403).send('Not authorized to access this machine');
+            }
+        }
+        
         const operations = await MachineOperation.find({ machineId: id }).sort({ dateTime: -1 });
         res.status(200).json(operations);
     } catch (error) {
@@ -330,12 +408,20 @@ app.delete('/api/operations/:id', async (req, res) => {
     }
 });
 
+// New endpoint to get the last update timestamp
+app.get('/api/lastUpdate', (req, res) => {
+    res.json({ lastUpdate: lastDataUpdateTime });
+});
+
 // API endpoint to receive data from ESP32+SIM800L module
 app.post('/api/esp32data', async (req, res) => {
     console.log('------------ ESP32+SIM800L DATA RECEIVED ------------');
     console.log('Timestamp:', new Date().toISOString());
     console.log('Data:', req.body);
     console.log('---------------------------------------------------');
+    
+    // Update the lastDataUpdateTime whenever new data is received
+    lastDataUpdateTime = new Date().toISOString();
     
     // Check if this is a simple message (from directory update)
     if (req.body && req.body.message) {
@@ -419,11 +505,11 @@ app.post('/api/esp32data', async (req, res) => {
         
         if (simNumber) {
             try {
-                // Find the machine with this SIM number
-                const machine = await Machine.findOne({ simNumber });
+                // Find all machines with this SIM number (regardless of username)
+                const machines = await Machine.find({ simNumber });
                 
-                if (machine) {
-                    // Update machine with received data
+                if (machines && machines.length > 0) {
+                    // Update data for all machines with this SIM number
                     const updateData = {
                         lastStatusUpdate: new Date()
                     };
@@ -453,12 +539,17 @@ app.post('/api/esp32data', async (req, res) => {
                         }
                     }
                     
-                    // Update the machine in the database
-                    await Machine.findByIdAndUpdate(machine._id, updateData);
+                    // Update all machines with this SIM number
+                    for (const machine of machines) {
+                        await Machine.findByIdAndUpdate(machine._id, updateData);
+                    }
                     
-                    console.log(`Updated machine status for SIM number: ${simNumber}`);
+                    // Update lastDataUpdateTime when machine data is updated
+                    lastDataUpdateTime = new Date().toISOString();
+                    
+                    console.log(`Updated ${machines.length} machine(s) with SIM number: ${simNumber}`);
                 } else {
-                    console.log(`No machine found with SIM number: ${simNumber}`);
+                    console.log(`No machines found with SIM number: ${simNumber}`);
                 }
             } catch (error) {
                 console.error('Error updating machine status:', error);
@@ -473,26 +564,32 @@ app.post('/api/esp32data', async (req, res) => {
         
         if (simNumber) {
             try {
-                // Find the machine with this SIM number
-                const machine = await Machine.findOne({ simNumber });
+                // Find all machines with this SIM number (regardless of username)
+                const machines = await Machine.find({ simNumber });
                 
-                if (machine) {
-                    // Create a new operation record
-                    const newOperation = new MachineOperation({
-                        machineId: machine._id,
-                        dateTime: new Date(),
-                        fuelConsumption: parseFloat(fuelConsumption) || 0,
-                        pressure: parseFloat(pressure) || 0,
-                        processTime: parseFloat(processTime) || 0,
-                        location: location || 'Unknown'
-                    });
+                if (machines && machines.length > 0) {
+                    // Create and save operation records for all machines with this SIM number
+                    for (const machine of machines) {
+                        // Create a new operation record
+                        const newOperation = new MachineOperation({
+                            machineId: machine._id,
+                            dateTime: new Date(),
+                            fuelConsumption: parseFloat(fuelConsumption) || 0,
+                            pressure: parseFloat(pressure) || 0,
+                            processTime: parseFloat(processTime) || 0,
+                            location: location || 'Unknown'
+                        });
+                        
+                        // Save the new operation to the database
+                        await newOperation.save();
+                    }
                     
-                    // Save the new operation to the database
-                    await newOperation.save();
+                    // Update lastDataUpdateTime when a new operation is created
+                    lastDataUpdateTime = new Date().toISOString();
                     
-                    console.log(`Created new operation record for machine: ${machine.machineName} (SIM: ${simNumber})`);
+                    console.log(`Created new operation records for ${machines.length} machine(s) with SIM number: ${simNumber}`);
                 } else {
-                    console.log(`No machine found with SIM number: ${simNumber}`);
+                    console.log(`No machines found with SIM number: ${simNumber}`);
                 }
             } catch (error) {
                 console.error('Error creating new operation record:', error);

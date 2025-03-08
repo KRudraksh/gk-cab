@@ -263,6 +263,11 @@
     margin-top: 10px; /* Space above the button */
 }
 
+.download-button:hover {
+    background-color: #0091d5; /* Darker shade on hover */
+}
+
+
 .get-status-button:hover {
     background-color: #0091d5; /* Darker shade on hover */
 }

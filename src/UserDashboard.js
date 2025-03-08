@@ -26,6 +26,59 @@ const UserDashboard = () => {
     const [directoryNumbers, setDirectoryNumbers] = useState([]); // State for directory numbers
     const [newNumberInput, setNewNumberInput] = useState(''); // State for new number input
     const [phoneBook, setPhoneBook] = useState('None'); // New state for PhoneBook
+    const [lastBackendUpdateTime, setLastBackendUpdateTime] = useState(''); // State to track last backend update time
+    const [pollingInterval, setPollingInterval] = useState(null); // State to store polling interval ID
+
+    // Function to check for updates from the backend
+    const checkForUpdates = async () => {
+        try {
+            // Don't check for updates if we just refreshed (within the last 3 seconds)
+            const timeSinceLastRefresh = new Date() - new Date(lastRefreshTime);
+            if (timeSinceLastRefresh < 3000) {
+                return;
+            }
+            
+            const response = await fetch('http://localhost:5000/api/lastUpdate');
+            const data = await response.json();
+            
+            // If the backend update time has changed since our last check, refresh the data
+            if (data.lastUpdate !== lastBackendUpdateTime) {
+                console.log('New data detected, refreshing...');
+                setLastBackendUpdateTime(data.lastUpdate);
+                await handleRefresh(); // Use await since handleRefresh is now async
+            }
+        } catch (error) {
+            console.error('Error checking for updates:', error);
+        }
+    };
+
+    // Update selected machine details whenever machines array changes
+    useEffect(() => {
+        if (selectedMachineId && machines.length > 0) {
+            const updatedMachine = machines.find(machine => machine._id === selectedMachineId);
+            if (updatedMachine) {
+                setSelectedMachineDetails(updatedMachine);
+            }
+        }
+    }, [machines, selectedMachineId]); // Dependency on machines and selectedMachineId
+
+    // Start polling when component mounts
+    useEffect(() => {
+        // Get initial last update time
+        checkForUpdates();
+        
+        // Set up polling interval (check every 5 seconds)
+        // We need to use a wrapper function that can be async
+        const interval = setInterval(() => {
+            checkForUpdates();
+        }, 5000);
+        setPollingInterval(interval);
+        
+        // Clean up interval when component unmounts
+        return () => {
+            clearInterval(interval); // Use the interval variable directly from this scope
+        };
+    }, []); // Empty dependency array means this runs once on mount
 
     const handleLogout = () => {
         localStorage.removeItem('username'); // Remove username from local storage
@@ -33,18 +86,40 @@ const UserDashboard = () => {
         window.location.href = '/'; // Redirect to login page
     };
 
-    const handleRefresh = () => {
-        setNotification('Refreshing data...');
-        fetchMachines();
-        fetchUserData();
-        if (selectedMachineId) {
-            const selectedMachine = machines.find(machine => machine._id === selectedMachineId);
-            setSelectedMachineDetails(selectedMachine);
-            fetchOperationData(selectedMachineId);
+    const handleRefresh = async () => {
+        // setNotification('Refreshing data...');
+        
+        try {
+            // Fetch data in sequence to ensure the proper order
+            await fetchMachines();
+            await fetchUserData();
+            
+            // Now that we have the updated machines data, we can use it
+            if (selectedMachineId) {
+                // Get the machine from the updated machines array
+                const updatedMachine = machines.find(machine => machine._id === selectedMachineId);
+                if (updatedMachine) {
+                    setSelectedMachineDetails(updatedMachine);
+                    await fetchOperationData(selectedMachineId);
+                } else {
+                    console.warn('Selected machine no longer exists in the updated data');
+                }
+            }
+            
+            setLastRefreshTime(new Date());
+            
+            // Fetch the latest backend update time
+            const response = await fetch('http://localhost:5000/api/lastUpdate');
+            const data = await response.json();
+            setLastBackendUpdateTime(data.lastUpdate);
+            
+            // setNotification('Data refreshed successfully!');
+            // setTimeout(() => setNotification(''), 3000);
+        } catch (error) {
+            console.error('Error refreshing data:', error);
+            setNotification('Error refreshing data. Please try again.');
+            setTimeout(() => setNotification(''), 3000);
         }
-        setLastRefreshTime(new Date());
-        setNotification('Data refreshed successfully!');
-        setTimeout(() => setNotification(''), 3000);
     };
 
     const openMachineModal = () => {
@@ -96,7 +171,8 @@ const UserDashboard = () => {
 
     const fetchMachines = async () => {
         try {
-            const response = await fetch('http://localhost:5000/api/machines');
+            const username = localStorage.getItem('username');
+            const response = await fetch(`http://localhost:5000/api/machines?username=${username}`);
             const data = await response.json();
             setMachines(data); // Set the machines state
         } catch (error) {
@@ -162,7 +238,8 @@ const UserDashboard = () => {
 
     const fetchOperationData = async (machineId) => {
         try {
-            const response = await fetch(`http://localhost:5000/api/machines/${machineId}/operations`);
+            const username = localStorage.getItem('username');
+            const response = await fetch(`http://localhost:5000/api/machines/${machineId}/operations?username=${username}`);
             if (response.ok) {
                 const data = await response.json();
                 setOperationData(data);
@@ -348,6 +425,8 @@ const UserDashboard = () => {
         
         // Save the PDF with a meaningful filename
         doc.save(`GK-CAB_Job_Report_${selectedMachineDetails.machineName}_${new Date().toISOString().split('T')[0]}.pdf`);
+        setNotification('Report Downloaded');
+        setTimeout(() => setNotification(''), 10000);
     };
 
     const handleGetStatus = async () => {
@@ -443,13 +522,17 @@ const UserDashboard = () => {
         }
 
         try {
+            const username = localStorage.getItem('username');
             // Save directory numbers
             const response = await fetch(`http://localhost:5000/api/machines/${selectedMachineId}/directory-numbers`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ directoryNumbers })
+                body: JSON.stringify({ 
+                    directoryNumbers,
+                    username 
+                })
             });
 
             if (response.ok) {
@@ -514,7 +597,8 @@ const UserDashboard = () => {
         }
 
         try {
-            const response = await fetch(`http://localhost:5000/api/machines/${selectedMachineId}/directory-numbers`);
+            const username = localStorage.getItem('username');
+            const response = await fetch(`http://localhost:5000/api/machines/${selectedMachineId}/directory-numbers?username=${username}`);
             const data = await response.json();
             
             setDirectoryNumbers(data.directoryNumbers || []);

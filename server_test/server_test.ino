@@ -72,7 +72,7 @@ TwoWire I2CPower = TwoWire(0);
 TinyGsmClient client(modem);
 
 #define uS_TO_S_FACTOR 1000000UL   /* Conversion factor for micro seconds to seconds */
-#define TIME_TO_SLEEP  60        /* Time ESP32 will go to sleep (in seconds) 3600 seconds = 1 hour */
+#define TIME_TO_SLEEP  10        /* Time ESP32 will go to sleep (in seconds) 3600 seconds = 1 hour */
 
 #define IP5306_ADDR          0x75
 #define IP5306_REG_SYS_CTL0  0x00
@@ -148,22 +148,23 @@ void loop() {
       SerialMon.println("Performing HTTP POST request...");
       
       // Build the basic request data
-      String httpRequestData = "cmd=STATUS_UPDATE&simNumber=9826951787&status=ONLINE&sensorStatus=OK&location=Bangalore";
+      // String httpRequestData = "cmd=STATUS_UPDATE&simNumber=9826951787&status=ONLINE&sensorStatus=OK&location=Bangalore";
       
       // Add phonebook data to the request
-      httpRequestData += "&phoneBook=[";
-      for (int i = 0; i < sizeof(phoneBook)/sizeof(phoneBook[0]); i++) {
-        httpRequestData += "\"" + phoneBook[i] + "\"";
-        if (i < sizeof(phoneBook)/sizeof(phoneBook[0]) - 1) {
-          httpRequestData += ",";
-        }
-      }
-      httpRequestData += "]";
+      // httpRequestData += "&phoneBook=[";
+      // for (int i = 0; i < sizeof(phoneBook)/sizeof(phoneBook[0]); i++) {
+      //   httpRequestData += "\"" + phoneBook[i] + "\"";
+      //   if (i < sizeof(phoneBook)/sizeof(phoneBook[0]) - 1) {
+      //     httpRequestData += ",";
+      //   }
+      // }
+      // httpRequestData += "]";
       
       // For debugging - print the full request data
-      SerialMon.println("Request data: " + httpRequestData);
       
-      // String httpRequestData = "cmd=JOB&simNumber=9826951787&fuelConsumption=1576&pressure=0.27&processTime=305&location=India";
+      
+      String httpRequestData = "cmd=JOB&simNumber=9826951787&fuelConsumption=1576&pressure=0.27&processTime=305&location=India";
+      SerialMon.println("Request data: " + httpRequestData);
       client.print(String("POST ") + resource + " HTTP/1.1\r\n");
       client.print(String("Host: ") + server + "\r\n");
       client.println("Connection: close");
