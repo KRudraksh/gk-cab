@@ -308,9 +308,10 @@ const UserDashboard = () => {
         doc.text(`SIM Number: ${selectedMachineDetails.simNumber || 'N/A'}`, 14, 61);
         doc.text(`Operator: ${selectedMachineDetails.operator || 'N/A'}`, 14, 67);
         doc.text(`Operation Area: ${selectedMachineDetails.operationArea || 'N/A'}`, 14, 73);
+        doc.text(`Remarks: ${selectedMachineDetails.remarks || 'N/A'}`, 14, 79);
         
         // Set starting y-position for the operations table
-        let yPosition = 85;
+        let yPosition = 91;
         
         // Add operation data in a table
         doc.setFont(undefined, 'bold');
@@ -321,7 +322,7 @@ const UserDashboard = () => {
         
         if (operationData && operationData.length > 0) {
             // Column headers for the table
-            const headers = [['Date & Time', 'Fuel Consumption', 'Pressure', 'Process Time', 'Location']];
+            const headers = [['Date & Time', 'Fuel Consumption (ml)', 'Pressure (bar)', 'Process Time (sec)', 'Location']];
             
             // Table data
             const data = operationData.map(operation => [
