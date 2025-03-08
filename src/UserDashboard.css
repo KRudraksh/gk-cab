@@ -253,6 +253,16 @@
     margin-top: 10px; /* Space above the button */
 }
 
+.download-button {
+    background-color: #1c4e80; /* Green color for Get Status button */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    padding: 5px 10px;
+    margin-top: 10px; /* Space above the button */
+}
+
 .get-status-button:hover {
     background-color: #0091d5; /* Darker shade on hover */
 }

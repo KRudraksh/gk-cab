@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import './UserDashboard.css'; // Importing the CSS file for styles
+import { jsPDF } from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const UserDashboard = () => {
     const name = localStorage.getItem('name'); // Retrieve name from local storage
@@ -7,6 +9,8 @@ const UserDashboard = () => {
     const [machineName, setMachineName] = useState('');
     const [simNumber, setSimNumber] = useState('');
     const [remarks, setRemarks] = useState('');
+    const [operator, setOperator] = useState(''); // New state for operator
+    const [operationArea, setOperationArea] = useState(''); // New state for operation area
     const [machines, setMachines] = useState([]); // State to hold machines
     const [selectedMachineId, setSelectedMachineId] = useState(null); // State to track selected machine
     const [selectedMachineDetails, setSelectedMachineDetails] = useState({}); // State to hold selected machine details
@@ -52,6 +56,8 @@ const UserDashboard = () => {
         setMachineName('');
         setSimNumber('');
         setRemarks('');
+        setOperator(''); // Reset operator
+        setOperationArea(''); // Reset operation area
         setPhoneBook('None'); // Reset phoneBook
     };
 
@@ -61,6 +67,8 @@ const UserDashboard = () => {
             machineName, 
             simNumber, 
             remarks, 
+            operator, // Include operator in the machine data
+            operationArea, // Include operation area in the machine data
             username: localStorage.getItem('username'), // Send the username
             phoneBook, // Include phoneBook in the machine data
         };
@@ -263,7 +271,84 @@ const UserDashboard = () => {
         setIsInfoModalOpen(false);
     };
 
-    // Function to handle Get Status button click
+    const handleDownloadPdf = async () => {
+        if (!selectedMachineId) {
+            alert('Please select a machine first');
+            return;
+        }
+
+        // Create a new PDF document
+        const doc = new jsPDF();
+        
+        // Add document title and header
+        doc.setFontSize(30);
+        // Set font to bold for the title
+        doc.setFont(undefined, 'bold');
+        doc.text('GK-CAB', 30, 15, { align: 'center' });
+        
+        doc.setFontSize(17);
+        // Keep bold setting for subtitle
+        doc.text('JOB REPORT', 105, 40, { align: 'center' });
+        
+        // Reset to normal font for the rest of the document
+        doc.setFont(undefined, 'normal');
+        
+        // Add the current date and time
+        const currentDateTime = new Date();
+        doc.setFontSize(10);
+        doc.text(`Report Generated: ${formatDate(currentDateTime)}`, 160, 10, { align: 'center' });
+        
+        // Add the user name who printed the report
+        doc.text(`Printed by: ${name}`, 141.5, 15, { align: 'center' });
+        
+        // Add machine details
+        doc.setFontSize(12);
+        // doc.text('Machine Details:', 14, 45);
+        doc.text(`Machine Name: ${selectedMachineDetails.machineName || 'N/A'}`, 14, 55);
+        doc.text(`SIM Number: ${selectedMachineDetails.simNumber || 'N/A'}`, 14, 61);
+        doc.text(`Operator: ${selectedMachineDetails.operator || 'N/A'}`, 14, 67);
+        doc.text(`Operation Area: ${selectedMachineDetails.operationArea || 'N/A'}`, 14, 73);
+        
+        // Set starting y-position for the operations table
+        let yPosition = 85;
+        
+        // Add operation data in a table
+        doc.setFont(undefined, 'bold');
+        doc.setFontSize(13);
+        doc.text('OPERATION DATA', 84, yPosition);
+        doc.setFont(undefined, 'normal');
+        yPosition += 10;
+        
+        if (operationData && operationData.length > 0) {
+            // Column headers for the table
+            const headers = [['Date & Time', 'Fuel Consumption', 'Pressure', 'Process Time', 'Location']];
+            
+            // Table data
+            const data = operationData.map(operation => [
+                formatDate(operation.dateTime),
+                operation.fuelConsumption || 'N/A',
+                operation.pressure || 'N/A',
+                operation.processTime || 'N/A',
+                operation.location || 'N/A'
+            ]);
+            
+            // Generate table using imported autoTable plugin
+            autoTable(doc, {
+                startY: yPosition,
+                head: headers,
+                body: data,
+                theme: 'striped',
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [66, 66, 66] }
+            });
+        } else {
+            doc.text('No operation data available', 14, yPosition + 10);
+        }
+        
+        // Save the PDF with a meaningful filename
+        doc.save(`GK-CAB_Job_Report_${selectedMachineDetails.machineName}_${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
     const handleGetStatus = async () => {
         if (!selectedMachineId) {
             alert('Please select a machine first');
@@ -480,8 +565,11 @@ const UserDashboard = () => {
                         {selectedMachineId && (
                             <div style={{ position: 'relative' }}>
                                 <button className="delete-machine-button" onClick={openDeleteModal} style={{ position: 'absolute', top: 10, right: 10 }}>Delete Machine</button>
+                                <button className="download-button" onClick={handleDownloadPdf} style={{ position: 'absolute', top: 10, right: 130 }}>Download</button>
                                 <button className="directory-update-button" onClick={openDirectoryUpdateModal} style={{ position: 'absolute', top: -25, right: 100 }}>Directory Update</button> {/* New Directory Update button */}
                                 <button className="get-status-button" onClick={handleGetStatus} style={{ position: 'absolute', top: -25, right: 10 }}>Get Status</button> {/* New Get Status button */}
+                                <button className="info-button" onClick={openInfoModal} style={{ position: 'absolute', top: -25, right: 228 }}>Info</button> {/* Info button with click handler */}
+                                {/* <button className="get-status-button" onClick={handleDownloadPdf} style={{ position: 'absolute', top: -25, right: 10 }}>Download PDF</button> New Download PDF button */}
                                 <button className="info-button" onClick={openInfoModal} style={{ position: 'absolute', top: -25, right: 228 }}>Info</button> {/* Info button with click handler */}
                                 <p><strong>Machine Name:</strong> {selectedMachineDetails.machineName}</p>
                                 <p><strong>SIM Number:</strong> {selectedMachineDetails.simNumber}</p>
@@ -575,6 +663,18 @@ const UserDashboard = () => {
                                 value={simNumber}
                                 onChange={(e) => setSimNumber(e.target.value)}
                                 required
+                            />
+                            <input
+                                type="text"
+                                placeholder="Operator"
+                                value={operator}
+                                onChange={(e) => setOperator(e.target.value)}
+                            />
+                            <input
+                                type="text"
+                                placeholder="Operation Area"
+                                value={operationArea}
+                                onChange={(e) => setOperationArea(e.target.value)}
                             />
                             <textarea
                                 placeholder="Remarks"
@@ -779,6 +879,8 @@ const UserDashboard = () => {
                                 <p><strong>Sensor Status:</strong> {selectedMachineDetails.sensorStatus || 'None'}</p>
                                 <p><strong>Location:</strong> {selectedMachineDetails.location || 'None'}</p>
                                 <p><strong>Server Connection:</strong> {selectedMachineDetails.serverConnection || 'OFFLINE'}</p>
+                                <p><strong>Operator:</strong> {selectedMachineDetails.operator || 'None'}</p>
+                                <p><strong>Operation Area:</strong> {selectedMachineDetails.operationArea || 'None'}</p>
                                 <p><strong>Remarks:</strong> {selectedMachineDetails.remarks}</p>
                                 <p><strong>Last Status Update:</strong> {selectedMachineDetails.lastStatusUpdate ? formatDate(selectedMachineDetails.lastStatusUpdate) : 'Never'}</p>
                                 <p><strong>PhoneBook:</strong></p>
