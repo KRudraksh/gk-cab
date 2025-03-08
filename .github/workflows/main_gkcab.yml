@@ -52,5 +52,5 @@ jobs:
         with:
           app-name: 'gkcab'
           slot-name: 'Production'
-          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_F969AC648C0144CCBCF5F6E41E999D9C }}
+          publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_03B70BB32CD34703BE488EA9FD0FAAAD }}
           package: .
