@@ -403,7 +403,7 @@ const Dashboard = () => {
                             <td>{user.email}</td>
                             <td>
                                 {user.machineCount}
-                                <button className="edit-machines-button" onClick={() => openEditModal(user._id)}>Edit Machines</button>
+                                <button className="edit-machines-button" onClick={() => openEditModal(user._id)}>Edit</button>
                             </td>
                             <td>
                                 <button className="delete-button" onClick={() => openDeleteModal(user._id)}>Delete</button>

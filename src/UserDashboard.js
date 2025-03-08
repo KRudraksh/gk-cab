@@ -295,8 +295,8 @@ const UserDashboard = () => {
             
             if (esp32Response.ok) {
                 console.log('Get Status command queued successfully');
-                setNotification('Status request queued for device!');
-                setTimeout(() => setNotification(''), 3000);
+                setNotification('Status requested, wait for a few mins...');
+                setTimeout(() => setNotification(''), 10000);
             } else {
                 console.error('Failed to queue Get Status command');
                 setNotification('Failed to queue status request!');
@@ -345,6 +345,14 @@ const UserDashboard = () => {
     const saveDirectoryNumbers = async () => {
         if (!selectedMachineId) {
             alert('Please select a machine first');
+            return;
+        }
+
+        // Check if machine status is ONLINE
+        if (selectedMachineDetails.status !== 'ONLINE') {
+            alert('Machine OFFLINE: Cannot save directory numbers when machine is offline');
+            setNotification('Machine OFFLINE: Cannot save directory numbers');
+            setTimeout(() => setNotification(''), 3000);
             return;
         }
 
@@ -455,7 +463,7 @@ const UserDashboard = () => {
                                 key={machine._id}
                                 className="machine-item"
                                 style={{
-                                    backgroundColor: selectedMachineId === machine._id ? '#a9a9a9' : '#c1bfbf', // Change color if selected
+                                    backgroundColor: selectedMachineId === machine._id ? '#0091d5' : '#7e909a', // Update: darker blue when selected, lighter blue when not
                                 }}
                                 onClick={() => handleSelectMachine(machine._id)} // Handle machine selection
                             >
@@ -486,7 +494,7 @@ const UserDashboard = () => {
                                         {selectedMachineDetails.status || 'OFFLINE'}
                                     </span>
                                 </p>
-                                {/* <p><strong>Last Status Update:</strong> {selectedMachineDetails.lastStatusUpdate ? formatDate(selectedMachineDetails.lastStatusUpdate) : 'Never'}</p> */}
+                                <p><strong>Last Status Update:</strong> {selectedMachineDetails.lastStatusUpdate ? formatDate(selectedMachineDetails.lastStatusUpdate) : 'Never'}</p>
                             </div>
                         )}
                     </div>
@@ -602,18 +610,33 @@ const UserDashboard = () => {
 
             {isDirectoryUpdateModalOpen && (
                 <div className="modal_dir">
-                    <div className="modal-content_dir">
+                    <div className="modal_dir-content">
                         <span className="close-button" onClick={closeDirectoryUpdateModal}>&times;</span>
                         <h3>Directory Update</h3>
                         {selectedMachineId ? (
-                            <p>
-                                Machine: {machines.find(m => m._id === selectedMachineId)?.machineName || 'Unknown'}
-                            </p>
+                            <>
+                                <p>
+                                    Machine: {machines.find(m => m._id === selectedMachineId)?.machineName || 'Unknown'}
+                                </p>
+                                <p>
+                                    Status: <span style={{ 
+                                        fontWeight: 'bold',
+                                        color: selectedMachineDetails.status === 'ONLINE' ? '#008000' : '#cf1313'
+                                    }}>
+                                        {selectedMachineDetails.status || 'OFFLINE'}
+                                    </span>
+                                    {selectedMachineDetails.status !== 'ONLINE' && 
+                                        <span style={{ color: '#cf1313', display: 'block', marginTop: '5px' }}>
+                                            (Machine must be ONLINE to save directory)
+                                        </span>
+                                    }
+                                </p>
+                            </>
                         ) : (
                             <p style={{ color: 'red' }}>Please select a machine first!</p>
                         )}
                         
-                        <p style={{ color: '#666', fontStyle: 'italic' }}>Maximum 15 phone numbers allowed.</p>
+                        {/* <p style={{ color: '#666', fontStyle: 'italic' }}>Maximum 15 phone numbers allowed.</p> */}
                         
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                             {/* Left Section */}
@@ -680,7 +703,7 @@ const UserDashboard = () => {
                                                             <button 
                                                                 style={{ 
                                                                     padding: '5px 10px', 
-                                                                    backgroundColor: '#ff4d4d', 
+                                                                    backgroundColor: '#cf1313', 
                                                                     color: 'white', 
                                                                     border: 'none', 
                                                                     borderRadius: '3px',
@@ -709,13 +732,14 @@ const UserDashboard = () => {
                             <button 
                                 style={{ 
                                     padding: '8px 15px', 
-                                    backgroundColor: '#1e434c', 
+                                    backgroundColor: selectedMachineDetails.status === 'ONLINE' ? '#1e434c' : '#cccccc', 
                                     color: 'white', 
                                     border: 'none', 
                                     borderRadius: '4px',
-                                    cursor: 'pointer'
+                                    cursor: selectedMachineDetails.status === 'ONLINE' ? 'pointer' : 'not-allowed'
                                 }}
                                 onClick={saveDirectoryNumbers}
+                                title={selectedMachineDetails.status !== 'ONLINE' ? 'Machine must be ONLINE to save directory' : ''}
                             >
                                 Save Directory
                             </button>

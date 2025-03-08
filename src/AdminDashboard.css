@@ -4,18 +4,18 @@
     align-items: flex-start;
     justify-content: flex-start;
     height: 100vh;
-    background-color: #dcdbdb; /* Background color */
+    background-color: #f1f1f1; /* Background color */
     position: relative; /* Add relative positioning */
 }
 
 .dashboard-heading {
-    color: #1e434c; /* Text color */
+    color: #020202; /* Text color */
     font-size: 2.5rem;
     margin: 20px;
 }
 
 .sub-sub-heading {
-    color: #1e434c; /* Text color */
+    color: #020202; /* Text color */
     font-size: 1.5rem; /* Adjust font size as needed */
     position: absolute; /* Use absolute positioning */
     top: 20px; /* Adjust top position as needed */
@@ -26,7 +26,7 @@
 .add-user-button {
     margin: 20px;
     padding: 10px 20px;
-    background-color: #1e434c; /* Button color */
+    background-color: #1c4e80; /* Button color */
     color: white;
     border: none;
     border-radius: 5px;
@@ -34,7 +34,7 @@
 }
 
 .add-user-button:hover {
-    background-color: #2c7873; /* Darker shade on hover */
+    background-color: #0091d5; /* Darker shade on hover */
 }
 
 .modal {
@@ -73,7 +73,7 @@
     width: 100%; /* Make buttons take full width */
     padding: 10px;
     margin-top: 10px; /* Add margin for spacing */
-    background-color: #1e434c; /* Button color */
+    background-color: #1c4e80; /* Button color */
     color: white;
     border: none;
     border-radius: 5px;
@@ -81,7 +81,7 @@
 }
 
 .modal-content button:hover {
-    background-color: #2c7873; /* Darker shade on hover */
+    background-color: #0091d5; /* Darker shade on hover */
 }
 
 .modal_1 {
@@ -120,7 +120,7 @@
     width: 100%; /* Make buttons take full width */
     padding: 10px;
     margin-top: 10px; /* Add margin for spacing */
-    background-color: #1e434c; /* Button color */
+    background-color: #1c4e80; /* Button color */
     color: white;
     border: none;
     border-radius: 5px;
@@ -128,7 +128,7 @@
 }
 
 .modal-content_1 button:hover {
-    background-color: #2c7873; /* Darker shade on hover */
+    background-color: #0091d5; /* Darker shade on hover */
 }
 
 .close-button {
@@ -151,7 +151,8 @@ th, td {
 }
 
 th {
-    background-color: #f2f2f2;
+    background-color: #1c4e80;
+    color: white;
 }
 
 .delete-button {
@@ -168,7 +169,7 @@ th {
 }
 
 .edit-machines-button {
-    background-color: #1e434c; /* Green color */
+    background-color: #1c4e80; /* Green color */
     color: white;
     border: none;
     border-radius: 5px;
@@ -178,7 +179,7 @@ th {
 }
 
 .edit-machines-button:hover {
-    background-color: #2c7873; /* Darker shade on hover */
+    background-color: #0091d5; /* Darker shade on hover */
 }
 
 /* Add this new class for action buttons */

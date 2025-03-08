@@ -5,6 +5,8 @@ const LoginPage = () => {
     const [userId, setUserId] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [modalTitle, setModalTitle] = useState('');
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -36,6 +38,15 @@ const LoginPage = () => {
         }
     };
 
+    const openModal = (title) => {
+        setModalTitle(title);
+        setShowModal(true);
+    };
+
+    const closeModal = () => {
+        setShowModal(false);
+    };
+
     return (
         <div className="login-container">
             <h1 className="heading">GK-CAB</h1>
@@ -60,10 +71,21 @@ const LoginPage = () => {
                 <button type="submit" className="submit-button">Login</button>
                 {error && <p className="error-message">{error}</p>}
                 <div className="button-container">
-                    <button type="button" className="link-button">New User</button>
-                    <button type="button" className="link-button">Forgot Password</button>
+                    <button type="button" className="link-button" onClick={() => openModal('New User')}>New User</button>
+                    <button type="button" className="link-button" onClick={() => openModal('Forgot Password')}>Forgot Password</button>
                 </div>
             </form>
+
+            {showModal && (
+                <div className="modal">
+                    <div className="modal-content">
+                        <span className="close-icon" onClick={closeModal}>&times;</span>
+                        <h3>{modalTitle}</h3>
+                        <p>Contact Admin</p>
+                        <p>Email: gkmicrometals@gmail.com</p>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };
